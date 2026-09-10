@@ -21,11 +21,31 @@ def user_register():
     password_hash=hashlib.sha256(password.encode()).hexdigest()
     date = (name, login, password)
     cur = cnx.cursor()
-    rows = cur.execute('INSERT INTO users (`username`, `email`, `password_hash`) VALUES (%s, %s, %s)', (name, login, password_hash))
+    try:
+        rows = cur.execute('INSERT INTO users (`username`, `email`, `password_hash`) VALUES (%s, %s, %s)', (name, login, password_hash))
+    except:
+        return{'result':False}
     cnx.commit()
     cnx.close()
 
-    return 'vse ok'
+    return{'result':True,'id': cur.lastrowid}
+
+@app.route('/user_avtorization', methods=['POST'])
+def user_avtorization():
+    req = request.get_json()
+    cnx = connect()
+    login = req['email']
+    password = req['password']
+    date = ( login, password)
+    cur = cnx.cursor()
+    try:
+        rows = cur.execute('SELECT * FROM  users WHERE email=%s AND password=%s', date )
+    except:
+        return{'result':False}
+    cnx.commit()
+    cnx.close()
+
+    return{'result':True,'user': cur.fetchall}
 
 # # Fetch one result
 # row = cur.fetchone()

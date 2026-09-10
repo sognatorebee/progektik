@@ -18,6 +18,32 @@ $(document).ready(function(){
                     email: $('#email').val()
                 })
             })
+            .done(function(data){
+                if(data.result){
+                    window.location.href='/login'
+                }else{
+                    alert("Что-то пошло не так")
+                }
+            })
         }
     })
-})
+    $('#76').on('submit',function(e){
+        e.preventDefault();
+            $.ajax({
+                url: '/user_avtorization',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    password: $('#password').val(),
+                    email: $('#username').val()
+                })
+            })
+            .done(function(data){
+                if(data.result){
+                    window.location.href='/login'
+                }else{
+                    alert("Что-то пошло не так")
+                }
+            })
+        })
+    })
