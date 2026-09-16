@@ -40,7 +40,7 @@ $(document).ready(function(){
             })
             .done(function(data){
                 if(data.result){
-                    window.location.href='/login'
+                    alert('vse ok')
                 }else{
                     alert("Что-то пошло не так")
                 }

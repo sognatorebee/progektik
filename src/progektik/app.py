@@ -1,3 +1,4 @@
+
 import hashlib
 from flask import Flask, render_template, request, jsonify
 import mysql.connector
@@ -19,41 +20,59 @@ def user_register():
     login = req['email']
     password = request.json['password']
     password_hash=hashlib.sha256(password.encode()).hexdigest()
-    date = (name, login, password)
+    date = (name, login, password_hash)
     cur = cnx.cursor()
     try:
-        rows = cur.execute('INSERT INTO users (`username`, `email`, `password_hash`) VALUES (%s, %s, %s)', (name, login, password_hash))
-    except:
-        return{'result':False}
+        rows = cur.execute('INSERT INTO users (`username`, `email`, `password_hash`) VALUES (%s, %s, %s)', date)
+    except Exception as e:            
+        print(f"Ошибка БД: {e}")   
+        return {'result': False}
+    new_id = cur.lastrowid
     cnx.commit()
     cnx.close()
 
-    return{'result':True,'id': cur.lastrowid}
+    return {'result': True, 'id': new_id}
+    
+
+    #try:
+        #rows = cur.execute('INSERT INTO users (`username`, `email`, `password_hash`) VALUES (%s, %s, %s)', date)
+    #except:
+        #return{'result':False}
+    #cnx.commit()
+    #cnx.close()
+
+    #return{'result':True,'id': cur.lastrowid}
 
 @app.route('/user_avtorization', methods=['POST'])
 def user_avtorization():
     req = request.get_json()
-    cnx = connect()
+    cnx = mysql.connector.connect()
     login = req['email']
-    password = req['password']
-    date = ( login, password)
-    cur = cnx.cursor()
+    password=req['password']
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+    date = (login, password_hash)
+    cur = cnx.cursor(buffered= True)
     try:
-        rows = cur.execute('SELECT * FROM  users WHERE email=%s AND password=%s', date )
-    except:
-        return{'result':False}
+        rows = cur.execute('SELECT * FROM users WHERE email=%s AND password_hash=%s', date)
+    except Exception as e: 
+        print(f"Ошибка авторизации: {e}")
+        return {'result': False}
+
+    user_data = cur.fetchall()
     cnx.commit()
-    cnx.close()
+    cnx.close()       
 
-    return{'result':True,'user': cur.fetchall}
+    if not user_data:    
+        return {'result': False}
 
+    return {'result': True, 'user': user_data[0]} 
 # # Fetch one result
 # row = cur.fetchone()
 # print("Current date is: {0}".format(row[0]))
 
 # # Close connection
 # cnx.close()
-
+####
 @app.route("/")
 def registration():
     return render_template('registration.html')
